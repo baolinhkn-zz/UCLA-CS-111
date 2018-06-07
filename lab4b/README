@@ -1,0 +1,9 @@
+NAME: Baolinh Nguyen
+UID: 104732121
+EMAIL: baolinh.nguyen@ucla.edu
+
+README: this file
+Makefile: file that contains make, check, clean, and dist targets
+lab4b.c: The program that builds and runs on the Beaglebone that detects
+	 the temperature of the room. It accepts parameters --period, --scale,
+	  and --log. 

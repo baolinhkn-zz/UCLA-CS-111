@@ -1,0 +1,32 @@
+NAME: Baolinh Nguyen
+EMAIL: baolinh.nguyen@ucla.edu
+UID: 104732121
+
+The files included are:
+    - this README
+    - lab1b-server.c	implements the server side, compiles to lab1b-server
+    - lab1b-client.c	implements the client side, compiles to lab1b-client
+    - Makefile		makefile with build targets:
+      			- default
+      			- client
+			- server
+			- clean
+			- dist
+
+I consulted the following sites when creating my program, 
+  http://man7.org/linux/man-pages/man2/socket.2.html
+  https://www.tutorialspoint.com/unix_sockets/socket_server_example.htm
+  https://www.tutorialspoint.com/unix_sockets/socket_client_example.htm
+  https://www.zlib.net/zpipe.c
+
+While working on this project, I ran into several issues.
+The sanity check failed during the trivial case, noting that I was not properly executing
+shell commands, despite my program working correctly when I simply ran it by hand. I spent
+some time trying to resolve this issue before deciding to start over. This time, as I
+wrote my program, I was extra meticulous. During this time, the server was down so I had
+to run the sanity check on my own machine. I resolved this issue with the sanity check
+outright failing. However, later, I ran the sanity check again and this time, it hung.
+
+To solve the issue of hanging, I redownloaded the P1B_check.sh file. Turns out, I had
+modified the P1B_check.sh file in order to try and fix my prevoius error and as a result, it
+caused hanging on my new version of the project. Once redownloaded, that problem was fixed.

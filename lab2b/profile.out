@@ -1,0 +1,382 @@
+Total: 778 samples
+     634  81.5%  81.5%      777  99.9% threadHandler
+      87  11.2%  92.7%       87  11.2% __strcmp_sse42
+      30   3.9%  96.5%       89  11.4% SortedList_insert
+      25   3.2%  99.7%       54   6.9% SortedList_lookup
+       1   0.1%  99.9%      778 100.0% __clone
+       1   0.1% 100.0%        1   0.1% _init
+       0   0.0% 100.0%      777  99.9% start_thread
+ROUTINE ====================== threadHandler in /u/cs/ugrad/baolinh/Desktop/CS111/lab2b/lab2_list.c
+   634    777 Total samples (flat / cumulative)
+     .      .  149:   pthread_exit(NULL);
+     .      .  150:   return 0;
+     .      .  151: }
+     .      .  152: 
+     .      .  153: void* threadHandler(void* threadID)
+---
+     .      .  154: {
+     .      .  155:   int tID = *(int*)threadID;
+     .      .  156:   int i;
+     .      .  157: 
+     .      .  158: 
+     .      .  159:   for (i = tID; i < num_elements; i = i + NUM_THREADS)
+     .      .  160:     {
+     .      .  161:       //which sublist the element goes into
+     .      .  162:       int index = abs(( (int) *(list_elements[i]->key)) % num_lists);
+     .      .  163: 
+     .      .  164:       if (sync_flag && *sync_ver == 'm')
+     .      .  165: 	{
+     .      .  166: 	  struct timespec mutex_start, mutex_end;
+     .      .  167: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  168: 	    systemCallErr("clock_gettime");
+     .      .  169: 	  pthread_mutex_lock(&mutexes[index]);
+     .      .  170: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  171: 	    systemCallErr("clock_gettime");
+     .      .  172: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  173: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  174: 	}
+     .      .  175:       else  if (sync_flag && *sync_ver == 's')
+     .      .  176: 	{
+     .      .  177: 	  struct timespec spin_start, spin_end;
+     .      .  178: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  179: 	    systemCallErr("clock_gettime");
+   443    443  180:       	  while(__sync_lock_test_and_set(&spin_locks[index], 1) == 1)
+     .      .  181: 	    ;
+     .      .  182: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  183: 	    systemCallErr("clock_gettime");
+     .      .  184: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  185: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  186: 	}
+     .      .  187: 
+     .     89  188:       SortedList_insert(head[index], list_elements[i]);
+     .      .  189: 
+     .      .  190:       if (sync_flag && *sync_ver == 'm')
+     .      .  191: 	pthread_mutex_unlock(&mutexes[index]);
+     .      .  192:       else if (sync_flag && *sync_ver == 's')
+     .      .  193: 	__sync_lock_release(&spin_locks[index]);
+     .      .  194: 
+     .      .  195:     }
+     .      .  196: 
+     .      .  197:   long long length = 0;
+     .      .  198: 
+     .      .  199:   for (i = 0; i < num_lists; i++)
+     .      .  200:     {
+     .      .  201:       if (sync_flag && *sync_ver == 'm')
+     .      .  202: 	{
+     .      .  203: 	  struct timespec mutex_start, mutex_end;
+     .      .  204: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  205: 	    systemCallErr("clock_gettime");
+     .      .  206: 	  pthread_mutex_lock(&mutexes[i]);
+     .      .  207: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  208: 	    systemCallErr("clock_gettime");
+     .      .  209: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  210: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  211: 	}
+     .      .  212:       else if (sync_flag && *sync_ver == 's')
+     .      .  213: 	{
+     .      .  214: 	  struct timespec spin_start, spin_end;
+     .      .  215: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  216: 	    systemCallErr("clock_gettime");
+     .      .  217: 	  while(__sync_lock_test_and_set(&spin_locks[i], 1) == 1)
+     .      .  218: 	    ;
+     .      .  219: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  220: 	    systemCallErr("clock_gettime");
+     .      .  221: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  222: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  223: 	}
+     .      .  224: 
+     .      .  225:       length = SortedList_length(head[i]);
+     .      .  226: 
+     .      .  227:       if (length == -1)
+     .      .  228: 	{
+     .      .  229: 	  fprintf(stderr, "Corrupted list!\n");
+     .      .  230: 	  exit(FAIL);
+     .      .  231: 	}
+     .      .  232: 
+     .      .  233:       if (sync_flag && *sync_ver == 'm')
+     .      .  234: 	pthread_mutex_unlock(&mutexes[i]);
+     .      .  235:       else if (sync_flag && *sync_ver == 's')
+     .      .  236: 	__sync_lock_release(&spin_locks[i]);
+     .      .  237:     }
+     .      .  238:   
+     .      .  239:   for (i = tID; i < num_elements; i = i + NUM_THREADS)
+     .      .  240:     {
+     .      .  241:       int index = abs(( (int) *(list_elements[i]->key)) % num_lists);
+     .      .  242:       if (sync_flag && *sync_ver == 'm')
+     .      .  243: 	{
+     .      .  244: 	  struct timespec mutex_start, mutex_end;
+     .      .  245: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  246: 	    systemCallErr("clock_gettime");
+     .      .  247: 	  pthread_mutex_lock(&mutexes[index]);
+     .      .  248: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  249: 	    systemCallErr("clock_gettime");
+     .      .  250: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  251: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  252: 	}
+     .      .  253:       else if (sync_flag && *sync_ver == 's')
+     .      .  254: 	{
+     .      .  255: 	  struct timespec spin_start, spin_end;
+     .      .  256: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  257: 	    systemCallErr("clock_gettime");
+   191    191  258: 	  while(__sync_lock_test_and_set(&spin_locks[index], 1) == 1)
+     .      .  259: 	    ;
+     .      .  260: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  261: 	    systemCallErr("clock_gettime");
+     .      .  262: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  263: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  264: 	}
+     .      .  265: 
+     .     54  266:       SortedListElement_t* element = SortedList_lookup(head[index], list_elements[i]->key);
+     .      .  267:       if (element == NULL)
+     .      .  268: 	{
+     .      .  269: 	  fprintf(stderr, "Corrupted List! Returned a null element in lookup\n");
+     .      .  270: 	  exit(FAIL);
+     .      .  271: 	}
+     .      .  272:       if (SortedList_delete(element) == 1)
+     .      .  273: 	{
+     .      .  274: 	  fprintf(stderr, "Corrupted List! Error in element deletion\n");
+     .      .  275: 	  exit(FAIL);
+     .      .  276: 	}	    
+     .      .  277:       
+     .      .  278:       if (sync_flag && *sync_ver == 'm')
+     .      .  279: 	pthread_mutex_unlock(&mutexes[index]);
+     .      .  280:       else if (sync_flag && *sync_ver == 's')
+     .      .  281: 	__sync_lock_release(&spin_locks[index]);
+     .      .  282:     }
+     .      .  283: 
+     .      .  284: 
+     .      .  285:   length = 0;
+     .      .  286:   for (i = 0; i < num_lists; i++)
+     .      .  287:     {
+     .      .  288:       if (sync_flag && *sync_ver == 'm')
+     .      .  289: 	{
+     .      .  290: 	  struct timespec mutex_start, mutex_end;
+     .      .  291: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  292: 	    systemCallErr("clock_gettime");
+     .      .  293: 	  pthread_mutex_lock(&mutexes[i]);
+     .      .  294: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  295: 	    systemCallErr("clock_gettime");
+     .      .  296: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  297: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  298: 	}
+     .      .  299:       else if (sync_flag && *sync_ver == 's')
+     .      .  300: 	{
+     .      .  301: 	  struct timespec spin_start, spin_end;
+     .      .  302: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  303: 	    systemCallErr("clock_gettime");
+     .      .  304: 	  while(__sync_lock_test_and_set(&spin_locks[i], 1) == 1)
+     .      .  305: 	    ;
+     .      .  306: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  307: 	    systemCallErr("clock_gettime");
+     .      .  308: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  309: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  310: 	}
+     .      .  311: 
+     .      .  312: 
+     .      .  313:       length = SortedList_length(head[i]);
+     .      .  314: 
+     .      .  315:       if (length == -1)
+     .      .  316: 	{
+     .      .  317: 	  fprintf(stderr, "Corrupted List!\n");
+     .      .  318: 	  exit(FAIL);
+     .      .  319: 	}
+     .      .  320: 
+     .      .  321:       if (sync_flag && *sync_ver == 'm')
+     .      .  322: 	pthread_mutex_unlock(&mutexes[i]);
+     .      .  323:       else if (sync_flag && *sync_ver == 's')
+     .      .  324: 	__sync_lock_release(&spin_locks[i]);
+     .      .  325:     }
+     .      .  326:   pthread_exit(NULL);
+---
+     .      .  327: }
+     .      .  328: 
+     .      .  329: SortedListElement_t** generateListElements(long long len)
+     .      .  330: {
+     .      .  331:   SortedListElement_t** list_elements = (SortedListElement_t**) malloc((sizeof(SortedListElement_t)) * len);
+ROUTINE ====================== threadHandler in /u/cs/ugrad/baolinh/Desktop/CS111/lab2b/lab2_list.c
+   634    777 Total samples (flat / cumulative)
+     .      .  149:   pthread_exit(NULL);
+     .      .  150:   return 0;
+     .      .  151: }
+     .      .  152: 
+     .      .  153: void* threadHandler(void* threadID)
+---
+     .      .  154: {
+     .      .  155:   int tID = *(int*)threadID;
+     .      .  156:   int i;
+     .      .  157: 
+     .      .  158: 
+     .      .  159:   for (i = tID; i < num_elements; i = i + NUM_THREADS)
+     .      .  160:     {
+     .      .  161:       //which sublist the element goes into
+     .      .  162:       int index = abs(( (int) *(list_elements[i]->key)) % num_lists);
+     .      .  163: 
+     .      .  164:       if (sync_flag && *sync_ver == 'm')
+     .      .  165: 	{
+     .      .  166: 	  struct timespec mutex_start, mutex_end;
+     .      .  167: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  168: 	    systemCallErr("clock_gettime");
+     .      .  169: 	  pthread_mutex_lock(&mutexes[index]);
+     .      .  170: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  171: 	    systemCallErr("clock_gettime");
+     .      .  172: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  173: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  174: 	}
+     .      .  175:       else  if (sync_flag && *sync_ver == 's')
+     .      .  176: 	{
+     .      .  177: 	  struct timespec spin_start, spin_end;
+     .      .  178: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  179: 	    systemCallErr("clock_gettime");
+   443    443  180:       	  while(__sync_lock_test_and_set(&spin_locks[index], 1) == 1)
+     .      .  181: 	    ;
+     .      .  182: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  183: 	    systemCallErr("clock_gettime");
+     .      .  184: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  185: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  186: 	}
+     .      .  187: 
+     .     89  188:       SortedList_insert(head[index], list_elements[i]);
+     .      .  189: 
+     .      .  190:       if (sync_flag && *sync_ver == 'm')
+     .      .  191: 	pthread_mutex_unlock(&mutexes[index]);
+     .      .  192:       else if (sync_flag && *sync_ver == 's')
+     .      .  193: 	__sync_lock_release(&spin_locks[index]);
+     .      .  194: 
+     .      .  195:     }
+     .      .  196: 
+     .      .  197:   long long length = 0;
+     .      .  198: 
+     .      .  199:   for (i = 0; i < num_lists; i++)
+     .      .  200:     {
+     .      .  201:       if (sync_flag && *sync_ver == 'm')
+     .      .  202: 	{
+     .      .  203: 	  struct timespec mutex_start, mutex_end;
+     .      .  204: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  205: 	    systemCallErr("clock_gettime");
+     .      .  206: 	  pthread_mutex_lock(&mutexes[i]);
+     .      .  207: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  208: 	    systemCallErr("clock_gettime");
+     .      .  209: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  210: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  211: 	}
+     .      .  212:       else if (sync_flag && *sync_ver == 's')
+     .      .  213: 	{
+     .      .  214: 	  struct timespec spin_start, spin_end;
+     .      .  215: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  216: 	    systemCallErr("clock_gettime");
+     .      .  217: 	  while(__sync_lock_test_and_set(&spin_locks[i], 1) == 1)
+     .      .  218: 	    ;
+     .      .  219: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  220: 	    systemCallErr("clock_gettime");
+     .      .  221: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  222: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  223: 	}
+     .      .  224: 
+     .      .  225:       length = SortedList_length(head[i]);
+     .      .  226: 
+     .      .  227:       if (length == -1)
+     .      .  228: 	{
+     .      .  229: 	  fprintf(stderr, "Corrupted list!\n");
+     .      .  230: 	  exit(FAIL);
+     .      .  231: 	}
+     .      .  232: 
+     .      .  233:       if (sync_flag && *sync_ver == 'm')
+     .      .  234: 	pthread_mutex_unlock(&mutexes[i]);
+     .      .  235:       else if (sync_flag && *sync_ver == 's')
+     .      .  236: 	__sync_lock_release(&spin_locks[i]);
+     .      .  237:     }
+     .      .  238:   
+     .      .  239:   for (i = tID; i < num_elements; i = i + NUM_THREADS)
+     .      .  240:     {
+     .      .  241:       int index = abs(( (int) *(list_elements[i]->key)) % num_lists);
+     .      .  242:       if (sync_flag && *sync_ver == 'm')
+     .      .  243: 	{
+     .      .  244: 	  struct timespec mutex_start, mutex_end;
+     .      .  245: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  246: 	    systemCallErr("clock_gettime");
+     .      .  247: 	  pthread_mutex_lock(&mutexes[index]);
+     .      .  248: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  249: 	    systemCallErr("clock_gettime");
+     .      .  250: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  251: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  252: 	}
+     .      .  253:       else if (sync_flag && *sync_ver == 's')
+     .      .  254: 	{
+     .      .  255: 	  struct timespec spin_start, spin_end;
+     .      .  256: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  257: 	    systemCallErr("clock_gettime");
+   191    191  258: 	  while(__sync_lock_test_and_set(&spin_locks[index], 1) == 1)
+     .      .  259: 	    ;
+     .      .  260: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  261: 	    systemCallErr("clock_gettime");
+     .      .  262: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  263: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  264: 	}
+     .      .  265: 
+     .     54  266:       SortedListElement_t* element = SortedList_lookup(head[index], list_elements[i]->key);
+     .      .  267:       if (element == NULL)
+     .      .  268: 	{
+     .      .  269: 	  fprintf(stderr, "Corrupted List! Returned a null element in lookup\n");
+     .      .  270: 	  exit(FAIL);
+     .      .  271: 	}
+     .      .  272:       if (SortedList_delete(element) == 1)
+     .      .  273: 	{
+     .      .  274: 	  fprintf(stderr, "Corrupted List! Error in element deletion\n");
+     .      .  275: 	  exit(FAIL);
+     .      .  276: 	}	    
+     .      .  277:       
+     .      .  278:       if (sync_flag && *sync_ver == 'm')
+     .      .  279: 	pthread_mutex_unlock(&mutexes[index]);
+     .      .  280:       else if (sync_flag && *sync_ver == 's')
+     .      .  281: 	__sync_lock_release(&spin_locks[index]);
+     .      .  282:     }
+     .      .  283: 
+     .      .  284: 
+     .      .  285:   length = 0;
+     .      .  286:   for (i = 0; i < num_lists; i++)
+     .      .  287:     {
+     .      .  288:       if (sync_flag && *sync_ver == 'm')
+     .      .  289: 	{
+     .      .  290: 	  struct timespec mutex_start, mutex_end;
+     .      .  291: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_start) == -1)
+     .      .  292: 	    systemCallErr("clock_gettime");
+     .      .  293: 	  pthread_mutex_lock(&mutexes[i]);
+     .      .  294: 	  if (clock_gettime(CLOCK_MONOTONIC, &mutex_end) == -1)
+     .      .  295: 	    systemCallErr("clock_gettime");
+     .      .  296: 	  long temp_time = mutex_end.tv_nsec - mutex_start.tv_nsec;
+     .      .  297: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  298: 	}
+     .      .  299:       else if (sync_flag && *sync_ver == 's')
+     .      .  300: 	{
+     .      .  301: 	  struct timespec spin_start, spin_end;
+     .      .  302: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_start) == -1)
+     .      .  303: 	    systemCallErr("clock_gettime");
+     .      .  304: 	  while(__sync_lock_test_and_set(&spin_locks[i], 1) == 1)
+     .      .  305: 	    ;
+     .      .  306: 	  if (clock_gettime(CLOCK_MONOTONIC, &spin_end) == -1)
+     .      .  307: 	    systemCallErr("clock_gettime");
+     .      .  308: 	  long long temp_time = spin_end.tv_nsec - spin_start.tv_nsec;
+     .      .  309: 	  elapsed_lock_ns = elapsed_lock_ns + timeDif(temp_time);
+     .      .  310: 	}
+     .      .  311: 
+     .      .  312: 
+     .      .  313:       length = SortedList_length(head[i]);
+     .      .  314: 
+     .      .  315:       if (length == -1)
+     .      .  316: 	{
+     .      .  317: 	  fprintf(stderr, "Corrupted List!\n");
+     .      .  318: 	  exit(FAIL);
+     .      .  319: 	}
+     .      .  320: 
+     .      .  321:       if (sync_flag && *sync_ver == 'm')
+     .      .  322: 	pthread_mutex_unlock(&mutexes[i]);
+     .      .  323:       else if (sync_flag && *sync_ver == 's')
+     .      .  324: 	__sync_lock_release(&spin_locks[i]);
+     .      .  325:     }
+     .      .  326:   pthread_exit(NULL);
+---
+     .      .  327: }
+     .      .  328: 
+     .      .  329: SortedListElement_t** generateListElements(long long len)
+     .      .  330: {
+     .      .  331:   SortedListElement_t** list_elements = (SortedListElement_t**) malloc((sizeof(SortedListElement_t)) * len);

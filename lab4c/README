@@ -1,0 +1,9 @@
+NAME: Baolinh Nguyen
+UID: 104732121
+EMAIL: baolinh.nguyen@ucla.edu
+
+Included in this submission are the following:
+README: this file
+Makefile: make file with default, clean, and dist targets
+lab4c_tls.c: C file implementing the tls protocol
+lab4c_tcp.c: C file implementing the tcp protocol

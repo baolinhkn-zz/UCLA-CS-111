@@ -1,0 +1,93 @@
+NAME: Baolinh Nguyen
+EMAIL: baolinh.nguyen@ucla.edu
+ID: 104732121
+
+Answers to Questions:
+QUESTION 2.1.1 - causing conflicts:
+	 - It takes significanatly more iterations before errors are seen because 
+	   errors that occur due to synchronization issues are rare events. However, 
+	   with enough repetition, these events will become commonplace. For instance,
+	   when I ran, it took around 1000 iterations for my code to start failing
+	   consistently.
+	 - With a small number of iterations, failure is seldom because the chance 
+	   of failure is lower. Because there are less iterations, and because failure
+	   happens only by chance due to the scheduler, the chance that the scheduler will
+	   schedule the threas in such a way that failure occurs is so low that it seldom
+	   appears to fail.
+QUESTION 2.1.2 - cost of yielding:
+	 - The runs using --yield runs are much slower because the scheduler is no longer 
+	   operating preemptively so threads will yield immediately and as a result, it will take
+	   longer for that thread to be scheduled again. 
+	 - The extra time is due to overhead associated with switching between different threads.
+	   The thread is foced to stop and its state must be saved. These actions incur overhead
+	   that results in additional time.
+	 - It is not possible to get valid per-operation timings using the --yield option.
+	 - The runtime of the entire system is increased while the number of operations
+	   remain the same. Thus, the valid per-operation timing would increase only because
+	   the threads are now yielding and that additional time is not because of the 
+	   operation itself but rather, because of the scheduler adding extra time due to
+	   the yielding.
+QUESTION 2.1.3 - measurement errors:
+	 - The average cost per operation is calculated by dividing the total time in 
+	   nanoseconds by the number of operations. However, this time also includes the
+	   thread creation time. By increasing the number of iterations while keeping the
+	   same amount of threads, we are also dividing up the cost of creating a single
+	   thread and thus, the average cost per operation (which, in reality, also includes
+	   the cost of creating a thread)is becoming closer to the actual cost per operation	
+	   and not the cost of the operation plus the cost of creating a thread.
+	 - In order to find the "correct" cost per iteration, we would have to run infinitely	
+	   many iterations to fully factor out the cost of creating a thread. We cannot do that
+	   so instead, we run with the maximum number of iterations allowed by the server.
+QUESTION 2.1.4 - costs of serialization
+	 - All of the options perform similarly for low number of threads because they all
+	   have to wait a similar amount. There is not much synchronization that is necessary
+	   and the amount of time that is taken for overhead due to locking is low because 
+	   of the low number of threads.
+	 - The three protected options slow down because in order to serialize, there must be
+	   waiting among the threads so that they cannot step on each other during execution.
+	   This waiting causes slowdown on all protected options.
+QUESTION 2.2.1 - scalability of Mutex
+	 - The time per operation for the list operations gradually is linear, increasing with
+	   the number of elements in the list. However, the add mutex lock operation sees a sharp
+	   increase in cost per operation that eventually levels out to be constant.
+	 - The list operation curve is linear because the cost increases linearly with an increase
+	   in elements in the list. The add mutex operation curve first increase and then levels off
+	   because the only cost incurred with a large number of threads reflects the cost of the add.
+	 - The mutex-protexted list operations increase linearly because the cost is directly 
+	   proportional to the amount of items in the list. The mutex-protected add on the other hand,
+	   increases only initially due to the cost of creating more threads. However, because the
+	   addition operation has a constant cost, the rate of increase eventually levels out with more
+	   addition operations.
+QUESTION 2.2.2 - scalability of spin locks
+	 - The time per protected operation for the Spin lock protected operation starts off being less
+	   than the time per protected operation for a mutex protected operation. However, as more
+	   threads get added, the time increases for spin locks, indicating that they do not scale as 
+	   well as mutex-protected operations. This is due to the fact that these locks force the thread to
+	   spin-wait, which causes more overhead.
+	 - Both the spin locks and mutex protected sections increase in cost linearly. This is because 
+	   in general, list operations scale linearly, meaning that the cost increases linearly in relation
+	   to the number of elements that are added.
+	 
+File Descriptions:
+add.sh: contains all of the test cases specified in the spec
+lab2_add-1.png: graph of threads and iterations required to generate a failure
+lab2_add-2.png: graph of the average time per operation with and without yields
+lab2_add-3.png: graph of the average time per single threaded operation vs. the number of iterations
+lab2_add-4.png: graph of the threads and iterations that can run successfully with yields and sync options
+lab2_add-5.png: average time per protected operation vs. the number of threads
+lab2_add.c: C program that implements an add to a shared variable
+lab2_add.csv: results for the tests that are in the add.sh file
+lab2_add.gp: script used to generate graphs for add function
+lab2_list-1.png: graph of average time per single threaded unprotected operation vs. number of iterations for list ops
+lab2_list-2.png: graph of the threads and iterations required to generate a failure with and without yield
+lab2_list-3.png: graph of the iterations that can run protected without failure
+lab2_list-4.png: graph of the cost per operation vs. the number of threads for different options 
+lab2_list.c: C program that implements different command line options surrounding a doubly linked list
+lab2_list.csv: results for the tests that are in the list.sh file
+lab2_list.gp: script used to generate graphs for the list function
+list.sh: contains all of the test cases for the list function specified in the spec
+Makefile: file to build the deliverable programs
+	  targets include: build, tests, graphs, dist, and clean
+README: the current file
+SortedList.c: contains implementations of all functions specified in the SortedList.h header file
+SortedList.h: header file containing interfaces for linked list operations

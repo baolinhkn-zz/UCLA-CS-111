@@ -1,0 +1,12 @@
+NAME: Baolinh Nguyen
+EMAIL: baolinh.nguyen@ucla.edu
+ID: 104732121
+
+The serial number of my Beaglebone is: BBGW17080035.
+The WIFI MAC address is: 2cf7f1066923.
+The files included are:
+    my_beaglebone.jpg: a photo of me holding my beaglebone
+    connected.png: a screenshot of the USB terminal command setting that shows I have renamed my beaglebone and have network access.
+    copy.png: a screenshot showing I have copied my helloWorld.c program over to my beaglebone using scp
+    build_run.png: a screenshot showing that I have built and ran the helloWorld.c program in my WIFI SSH session through beaglebone
+    git.png: a screenshot showing that I have installed git (or it has already been installed for me) and the respository that I have cloned.

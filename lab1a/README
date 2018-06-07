@@ -1,0 +1,15 @@
+NAME: Baolinh Nguyen
+EMAIL: baolinh.nguyen@ucla.edu
+ID: 104732121
+
+Included are the following files:
+lab1a.c - This is the source file containing the requested program.
+README - This file
+Makefile - The Makefile contains the program to build (with the -Wall and -Wextra) options, the executable and the tarball. It supports the standard default, clean, and dist targets.
+
+Issues encountered: I encountered issues with my read() from my shell process hanging but was able to resolve that once I realized that I needed to perform polling only in the parent process. I also had issues passing some of the sanity check cases (the process signal and status reporting and the interrupt case) but resolved that after consulting Piazza and editing my code to include event handlers. 
+
+References used: I used the following sites while working on this project:
+https://www.gnu.org/software/libc/manual/html_node/index.html
+http://www.linux-mag.com/id/357/
+http://www.csd.uwo.ca/~mburrel/teaching/3357/poll.html

@@ -1,0 +1,9 @@
+NAME: Baolinh Nguyen,Katie Cai
+ID: 104732121,404740817
+EMAIL: baolinh.nguyen@ucla.edu,katiecai@g.ucla.edu
+
+The files included in this project are:
+- README - this file
+- Makefile - file that builds lab3a and supports default, clean, and dist options
+- lab3a.c - file that implements project 3a
+- ext2_fs.h - provided header file

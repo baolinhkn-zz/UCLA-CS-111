@@ -1,0 +1,58 @@
+NAME: Baolinh Nguyen
+EMAIL: baolinh.nguyen@ucla.edu
+ID: 104732121
+
+Answers to Questions:
+QUESTION 2.3.1 - Cycles in the basic list implementation
+	 - Most cycles are spent in the main routines of the functions.
+	 - Most cycles are spent in the main routines because as of yet, there is not
+	   a lot of contention so most of the time should be spent doing the list operations.
+	 - In the high-thread spin-lock tests, the time is spent waiting for the locks, or 
+	   spinning on the locks.
+	 - In the high-thread mutex tests, the time is spent waiting to acquire the lock.
+QUESTION 2.3.2 - Execution Profiling
+	 - Most of the cycles are being consumed by the spin-waiting line, specifically:
+	    while(__sync_lock_test_and_set(&spin_lock, 1) == 1)
+	   which is where the program spin waits to acquire the lock.
+	 - This is expensive with large numbers of thread because there is a lot of
+	   contention, meaning that many threads have to wait here to acquire the lock
+	   in order to ensure mutual exclusion.
+QUESTION 2.3.3 - Mutex Wait Time
+	 - The average lock-wait time rises so dramatically because the contention for the critical
+	   section increases dramatically with more threads contending. Thus, more threads
+	   have to wait, increading the average lock-wait time.
+	 - The completion time rises less dramatically because this time includes the insert, length,
+	   lookup, and delete operations. These operations rise at a slow, constant rate. Morever,
+	   the completion time is measured from the parent thread.
+	 - Wait time per operation goes up faster because the wait time is measured for each thread, 
+	   rather than with the parent thread. Since all of these wait times are added together individually,
+	   the sum total and average of the wait time for the entire program can be larger than the 
+	   completion time.
+QUESTION 2.3.4 - Performance of Partitioned Lists
+	 - By adding lists, the locks become more fine-grained. This should improve performance. However,
+	   in my situation, it does not, because of overhead associated with the graphs and inefficiencies
+	   in my program. However, theoretically, performance should increase as a function of the number
+	   of lists.
+	 - The throughput will not continue increasing as the number of lists increases further because
+	   there will be overhead associated with the creation of the lists themselves, due to things like
+	   the malloc call or the increased indexing.
+	 - This is not true as adding threads only reduces the likelihood of contention. Having fewer threads
+	   and a single list reduces the overhead the creating a list and decreases contention, meaning that the
+	   performance may even be faster, depending on whether the number of lists is so great as to even reduce
+	   the benefits of partitioned lists.
+
+File Desciprtions:
+README: this file
+Makefile: file that contains tests, profile, graphs, dist, clean, and build targets to build the pgoram
+lab2b_list.csv: file containing results for test cases
+profile.out: execution profiling report, showing where most time was spent in the spin-lock
+lab2b_1.png: throughput vs. number of threads for mutex and spin locks
+lab2b_2.png: mean time per mutex wait and mean time per operation for mutex operations
+lab2b_3.png: successful iterations vs. threads
+lab2b_4.png: throughput vs. number of threads for mutex
+lab2b_5.png: throughput vs. number of threads for spin-lock
+lab2b_list.c: C program that takes options --threads, --iterations, --yield, --lists, --sync
+SortedList.h: header file contatining interface for linked list operations
+SortedList.c: C source module that contains implementations for functions in SortedList.h file
+list.sh: test script that contains all test cases necessary to build lab2b_list.gp file
+lab2b_list.gp: script that builds graphs for images lab2b_1-5.

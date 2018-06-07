@@ -1,0 +1,7 @@
+NAME:Baolinh Nguyen,Katie Cai
+EMAIL: baolinh.nguyen@ucla.edu,katiecai@g.ucla.edu
+ID: 104732121,404740872
+
+lab3b.py: python source file implementing lab
+README: this file
+Makefile: makefile with default, clean, and dist targets
